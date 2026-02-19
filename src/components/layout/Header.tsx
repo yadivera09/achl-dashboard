@@ -1,83 +1,114 @@
 'use client';
 
 // ─── Header Component ───────────────────────────────────────────
-// Top bar with search, employee status summary, and user profile.
-// Matches the UX mockup header design.
+// Top bar with search, employee status summary, and user profile link.
 
-import React from 'react';
+import React, { useMemo } from 'react';
+import Link from 'next/link';
+import { Search, LogOut } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
+import { useRouter } from 'next/navigation';
 import { getMockEmployeeStatuses } from '@/lib/mock-data';
 
 export default function Header() {
-    const user = useAuthStore((state) => state.user);
-    const statuses = getMockEmployeeStatuses();
+  const router = useRouter();
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+  const statuses = useMemo(() => getMockEmployeeStatuses(), []);
 
-    const onWork = statuses.filter((s) => s.workdayStatus === 'active').length;
-    const onBreak = statuses.filter((s) => s.workdayStatus === 'on_break').length;
-    const total = statuses.length;
+  const onWork = statuses.filter((s) => s.workdayStatus === 'active').length;
+  const onBreak = statuses.filter((s) => s.workdayStatus === 'on_break').length;
+  const total = statuses.length;
 
-    const initials = user?.full_name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .slice(0, 2)
-        .toUpperCase() ?? 'U';
+  const initials = user?.full_name
+    ? user.full_name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase()
+    : 'U';
 
-    return (
-        <header className="app-header">
-            {/* Search */}
-            <div className="header__search">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-                <input
-                    type="text"
-                    placeholder="Buscar empleado..."
-                    className="header__search-input"
-                    id="header-search"
-                />
+  const roleLabel =
+    user?.role === 'admin'
+      ? 'Administrador'
+      : user?.role === 'supervisor'
+        ? 'Supervisor'
+        : 'Empleado';
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/login');
+  };
+
+  return (
+    <header className="app-header" aria-label="Barra de navegación principal">
+      {/* Search */}
+      <div className="header__search">
+        <Search size={18} />
+        <input
+          type="text"
+          placeholder="Buscar empleado..."
+          className="header__search-input"
+          id="header-search"
+        />
+      </div>
+
+      {/* Status pills */}
+      <div className="header__status-pills">
+        <div className="header__avatar-cluster">
+          {statuses.slice(0, 3).map((s, i) => (
+            <div key={s.profile.id} className="header__mini-avatar" style={{ zIndex: 3 - i, marginLeft: i > 0 ? '-8px' : '0' }}>
+              {s.profile.full_name[0]}
             </div>
-
-            {/* Status pills */}
-            <div className="header__status-pills">
-                {/* Employee avatars cluster */}
-                <div className="header__avatar-cluster">
-                    {statuses.slice(0, 3).map((s, i) => (
-                        <div key={s.profile.id} className="header__mini-avatar" style={{ zIndex: 3 - i, marginLeft: i > 0 ? '-8px' : '0' }}>
-                            {s.profile.full_name[0]}
-                        </div>
-                    ))}
-                    {total > 3 && (
-                        <div className="header__mini-avatar header__mini-avatar--count" style={{ marginLeft: '-8px' }}>
-                            +{total - 3}
-                        </div>
-                    )}
-                </div>
-
-                <div className="header__pill header__pill--active">
-                    <span className="status-dot status-dot--active" />
-                    <span>{onWork} de {total} trabajando</span>
-                </div>
-
-                <div className="header__pill header__pill--break">
-                    <span className="status-dot status-dot--break" />
-                    <span>{onBreak} en pausa</span>
-                </div>
+          ))}
+          {total > 3 && (
+            <div className="header__mini-avatar header__mini-avatar--count" style={{ marginLeft: '-8px' }}>
+              +{total - 3}
             </div>
+          )}
+        </div>
 
-            {/* User profile */}
-            <div className="header__user">
-                <div className="header__user-info">
-                    <span className="header__user-name">{user?.full_name}</span>
-                    <span className="header__user-role">{user?.role === 'admin' ? 'Administrador' : user?.role === 'supervisor' ? 'Supervisor' : 'Empleado'}</span>
-                </div>
-                <div className="header__avatar">
-                    {initials}
-                </div>
-            </div>
+        <div className="header__pill header__pill--active">
+          <span className="status-dot status-dot--active" />
+          <span>{onWork} de {total} trabajando</span>
+        </div>
 
-            <style jsx>{`
+        <div className="header__pill header__pill--break">
+          <span className="status-dot status-dot--break" />
+          <span>{onBreak} en pausa</span>
+        </div>
+      </div>
+
+      {/* User — clicking name/avatar goes to /profile */}
+      <div className="header__user">
+        <div className="header__user-info">
+          <span className="header__user-name">{user?.full_name ?? '—'}</span>
+          <span className="header__user-role">{roleLabel}</span>
+        </div>
+
+        <Link
+          href="/profile"
+          className="header__avatar"
+          aria-label="Ver mi perfil"
+          id="btn-user-profile"
+          title="Mi perfil"
+        >
+          {initials}
+        </Link>
+
+        <button
+          className="header__logout-btn"
+          onClick={handleLogout}
+          aria-label="Cerrar sesión"
+          id="btn-logout"
+          title="Cerrar sesión"
+        >
+          <LogOut size={17} />
+        </button>
+      </div>
+
+      <style jsx>{`
         .app-header {
           position: fixed;
           top: 0;
@@ -176,6 +207,7 @@ export default function Header() {
           align-items: center;
           gap: var(--space-sm);
           margin-left: auto;
+          position: relative;
         }
 
         .header__user-info {
@@ -207,12 +239,34 @@ export default function Header() {
           font-weight: 700;
           font-size: 0.875rem;
           color: white;
-          cursor: pointer;
-          transition: box-shadow var(--transition-fast);
+          text-decoration: none;
+          flex-shrink: 0;
+          transition: box-shadow var(--transition-fast), transform var(--transition-fast);
         }
 
         .header__avatar:hover {
           box-shadow: var(--shadow-glow-purple);
+          transform: scale(1.05);
+        }
+
+        .header__logout-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 34px;
+          height: 34px;
+          border-radius: var(--radius-md);
+          background: none;
+          border: 1px solid var(--border-subtle);
+          color: var(--text-muted);
+          cursor: pointer;
+          transition: all var(--transition-fast);
+        }
+
+        .header__logout-btn:hover {
+          background: var(--status-danger-glow);
+          border-color: var(--status-danger);
+          color: var(--status-danger);
         }
 
         @media (max-width: 768px) {
@@ -225,6 +279,6 @@ export default function Header() {
           .header__user-info { display: none; }
         }
       `}</style>
-        </header>
-    );
+    </header>
+  );
 }

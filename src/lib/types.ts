@@ -14,6 +14,7 @@ export type AuditAction = 'insert' | 'update' | 'delete';
 export interface Profile {
     id: string;
     full_name: string;
+    email: string;
     avatar_url: string | null;
     role: UserRole;
     timezone: string;

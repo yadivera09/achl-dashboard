@@ -8,47 +8,47 @@ import { useSessionStore } from '@/stores/sessionStore';
 import { formatDate, formatTime, formatDuration, dayOfWeekShort } from '@/lib/utils';
 
 export default function RecentSessions() {
-    const getCompletedSessions = useSessionStore((s) => s.getCompletedSessions);
-    const sessions = getCompletedSessions().slice(0, 5);
+  const recentSessions = useSessionStore((s) => s.recentSessions);
+  const sessions = recentSessions.slice(0, 5);
 
-    return (
-        <div className="recent-sessions glass-elevated">
-            <h3 className="recent-sessions__title">Últimas jornadas</h3>
+  return (
+    <div className="recent-sessions glass-elevated">
+      <h3 className="recent-sessions__title">Últimas jornadas</h3>
 
-            {sessions.length === 0 ? (
-                <p className="recent-sessions__empty">No hay jornadas registradas</p>
-            ) : (
-                <div className="recent-sessions__list">
-                    {sessions.map((session) => {
-                        const hours = session.net_minutes ? (session.net_minutes / 60).toFixed(1) : '—';
-                        return (
-                            <div key={session.id} className="recent-session-row">
-                                <div className="recent-session-row__date">
-                                    <span className="recent-session-row__day-name">
-                                        {dayOfWeekShort(session.check_in)}
-                                    </span>
-                                    <span className="recent-session-row__day-date">
-                                        {formatDate(session.check_in)}
-                                    </span>
-                                </div>
-                                <div className="recent-session-row__times">
-                                    <span>{formatTime(session.check_in)}</span>
-                                    <span className="recent-session-row__arrow">→</span>
-                                    <span>{session.check_out ? formatTime(session.check_out) : '—'}</span>
-                                </div>
-                                <div className="recent-session-row__duration">
-                                    {hours}h
-                                </div>
-                                <div className={`recent-session-row__status recent-session-row__status--${session.status}`}>
-                                    {session.status === 'completed' ? '✓' : session.status}
-                                </div>
-                            </div>
-                        );
-                    })}
+      {sessions.length === 0 ? (
+        <p className="recent-sessions__empty">No hay jornadas registradas</p>
+      ) : (
+        <div className="recent-sessions__list">
+          {sessions.map((session) => {
+            const hours = session.net_minutes ? (session.net_minutes / 60).toFixed(1) : '—';
+            return (
+              <div key={session.id} className="recent-session-row">
+                <div className="recent-session-row__date">
+                  <span className="recent-session-row__day-name">
+                    {dayOfWeekShort(session.check_in)}
+                  </span>
+                  <span className="recent-session-row__day-date">
+                    {formatDate(session.check_in)}
+                  </span>
                 </div>
-            )}
+                <div className="recent-session-row__times">
+                  <span>{formatTime(session.check_in)}</span>
+                  <span className="recent-session-row__arrow">→</span>
+                  <span>{session.check_out ? formatTime(session.check_out) : '—'}</span>
+                </div>
+                <div className="recent-session-row__duration">
+                  {hours}h
+                </div>
+                <div className={`recent-session-row__status recent-session-row__status--${session.status}`}>
+                  {session.status === 'completed' ? '✓' : session.status}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-            <style jsx>{`
+      <style jsx>{`
         .recent-sessions {
           padding: var(--space-lg);
         }
@@ -141,6 +141,6 @@ export default function RecentSessions() {
           color: var(--status-active);
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

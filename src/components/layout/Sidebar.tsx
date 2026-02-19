@@ -3,128 +3,87 @@
 // ─── Sidebar Component ──────────────────────────────────────────
 // Icon-only dark sidebar matching UX mockup design.
 // Navigation items with active indicator (purple highlight).
+// Uses lucide-react icons for consistency and accessibility.
 
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import {
+  LayoutGrid,
+  Clock,
+  BarChart3,
+  Users,
+  Settings,
+} from 'lucide-react';
 
 interface NavItem {
-    href: string;
-    label: string;
-    icon: React.ReactNode;
+  href: string;
+  label: string;
+  icon: React.ReactNode;
 }
 
 const NAV_ITEMS: NavItem[] = [
-    {
-        href: '/',
-        label: 'Dashboard',
-        icon: (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="7" height="7" rx="1" />
-                <rect x="14" y="3" width="7" height="7" rx="1" />
-                <rect x="3" y="14" width="7" height="7" rx="1" />
-                <rect x="14" y="14" width="7" height="7" rx="1" />
-            </svg>
-        ),
-    },
-    {
-        href: '/history',
-        label: 'Historial',
-        icon: (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-            </svg>
-        ),
-    },
-    {
-        href: '/reports',
-        label: 'Reportes',
-        icon: (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="20" x2="18" y2="10" />
-                <line x1="12" y1="20" x2="12" y2="4" />
-                <line x1="6" y1="20" x2="6" y2="14" />
-            </svg>
-        ),
-    },
-    {
-        href: '/admin',
-        label: 'Admin',
-        icon: (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-        ),
-    },
+  { href: '/', label: 'Dashboard', icon: <LayoutGrid size={22} /> },
+  { href: '/history', label: 'Historial', icon: <Clock size={22} /> },
+  { href: '/reports', label: 'Reportes', icon: <BarChart3 size={22} /> },
+  { href: '/admin', label: 'Administración', icon: <Users size={22} /> },
 ];
 
 const BOTTOM_ITEMS: NavItem[] = [
-    {
-        href: '/profile',
-        label: 'Perfil',
-        icon: (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
-        ),
-    },
+  { href: '/profile', label: 'Configuración', icon: <Settings size={22} /> },
 ];
 
 export default function Sidebar() {
-    const pathname = usePathname();
+  const pathname = usePathname();
 
-    const isActive = (href: string) => {
-        if (href === '/') return pathname === '/';
-        return pathname.startsWith(href);
-    };
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    return pathname.startsWith(href);
+  };
 
-    return (
-        <aside className="sidebar">
-            {/* Logo */}
-            <div className="sidebar__logo">
-                <div className="sidebar__logo-icon">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
-                    </svg>
-                </div>
-            </div>
+  return (
+    <aside className="sidebar" aria-label="Navegación principal">
+      {/* Logo */}
+      <div className="sidebar__logo">
+        <div className="sidebar__logo-icon">
+          <Clock size={28} strokeWidth={2.5} />
+        </div>
+      </div>
 
-            {/* Main nav */}
-            <nav className="sidebar__nav">
-                {NAV_ITEMS.map((item) => (
-                    <Link
-                        key={item.href}
-                        href={item.href}
-                        className={`sidebar__link ${isActive(item.href) ? 'sidebar__link--active' : ''}`}
-                        title={item.label}
-                    >
-                        <span className="sidebar__icon">{item.icon}</span>
-                        {isActive(item.href) && <span className="sidebar__active-indicator" />}
-                    </Link>
-                ))}
-            </nav>
+      {/* Main nav */}
+      <nav className="sidebar__nav" aria-label="Menú principal">
+        {NAV_ITEMS.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`sidebar__link ${isActive(item.href) ? 'sidebar__link--active' : ''}`}
+            title={item.label}
+            aria-label={item.label}
+            aria-current={isActive(item.href) ? 'page' : undefined}
+          >
+            <span className="sidebar__icon">{item.icon}</span>
+            {isActive(item.href) && <span className="sidebar__active-indicator" />}
+          </Link>
+        ))}
+      </nav>
 
-            {/* Bottom nav */}
-            <nav className="sidebar__bottom">
-                {BOTTOM_ITEMS.map((item) => (
-                    <Link
-                        key={item.href}
-                        href={item.href}
-                        className={`sidebar__link ${isActive(item.href) ? 'sidebar__link--active' : ''}`}
-                        title={item.label}
-                    >
-                        <span className="sidebar__icon">{item.icon}</span>
-                    </Link>
-                ))}
-            </nav>
+      {/* Bottom nav */}
+      <nav className="sidebar__bottom" aria-label="Configuración">
+        {BOTTOM_ITEMS.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`sidebar__link ${isActive(item.href) ? 'sidebar__link--active' : ''}`}
+            title={item.label}
+            aria-label={item.label}
+            aria-current={isActive(item.href) ? 'page' : undefined}
+          >
+            <span className="sidebar__icon">{item.icon}</span>
+          </Link>
+        ))}
+      </nav>
 
-            <style jsx>{`
+      <style jsx>{`
         .sidebar {
           position: fixed;
           left: 0;
@@ -159,14 +118,16 @@ export default function Sidebar() {
         .sidebar__nav {
           display: flex;
           flex-direction: column;
-          gap: var(--space-xs);
+          gap: var(--space-sm);
           flex: 1;
+          padding-top: var(--space-sm);
         }
 
         .sidebar__bottom {
           display: flex;
           flex-direction: column;
-          gap: var(--space-xs);
+          gap: var(--space-sm);
+          padding-bottom: var(--space-sm);
         }
 
         .sidebar__link {
@@ -251,6 +212,6 @@ export default function Sidebar() {
           }
         }
       `}</style>
-        </aside>
-    );
+    </aside>
+  );
 }

@@ -6,152 +6,158 @@
 import React, { useState, useMemo } from 'react';
 import AppShell from '@/components/layout/AppShell';
 import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
 } from 'recharts';
 import { MOCK_WEEKLY_SUMMARY, MOCK_SESSIONS } from '@/lib/mock-data';
 
 type Period = 'week' | 'month';
 
+// Seeded pseudo-random to avoid SSR/client hydration mismatch
+function seededRandom(seed: number): number {
+  const x = Math.sin(seed * 9301 + 49297) * 49297;
+  return x - Math.floor(x);
+}
+
 export default function ReportsPage() {
-    const [period, setPeriod] = useState<Period>('week');
+  const [period, setPeriod] = useState<Period>('week');
 
-    const data = useMemo(() => {
-        if (period === 'week') return MOCK_WEEKLY_SUMMARY;
-        // Generate 30-day mock for monthly
-        return Array.from({ length: 30 }, (_, i) => ({
-            date: '',
-            dayLabel: `${i + 1}`,
-            hoursWorked: parseFloat((5 + Math.random() * 4).toFixed(1)),
-        }));
-    }, [period]);
+  const data = useMemo(() => {
+    if (period === 'week') return MOCK_WEEKLY_SUMMARY;
+    // Generate 30-day deterministic mock for monthly
+    return Array.from({ length: 30 }, (_, i) => ({
+      date: '',
+      dayLabel: `${i + 1}`,
+      hoursWorked: parseFloat((5 + seededRandom(i + 17) * 4).toFixed(1)),
+    }));
+  }, [period]);
 
-    const userSessions = MOCK_SESSIONS.filter(
-        (s) => s.user_id === 'u-001' && s.status === 'completed'
-    );
+  const userSessions = MOCK_SESSIONS.filter(
+    (s) => s.user_id === 'u-001' && s.status === 'completed'
+  );
 
-    const totalHours = userSessions.reduce((acc, s) => acc + (s.net_minutes ?? 0), 0) / 60;
-    const avgDaily = userSessions.length > 0 ? totalHours / userSessions.length : 0;
-    const daysWorked = userSessions.length;
-    const daysWithBreaks = userSessions.filter((s) => s.pause_minutes > 0).length;
+  const totalHours = userSessions.reduce((acc, s) => acc + (s.net_minutes ?? 0), 0) / 60;
+  const avgDaily = userSessions.length > 0 ? totalHours / userSessions.length : 0;
+  const daysWorked = userSessions.length;
+  const daysWithBreaks = userSessions.filter((s) => s.pause_minutes > 0).length;
 
-    const summaryCards = [
-        { label: 'Total horas', value: `${totalHours.toFixed(1)}h`, color: 'var(--accent-primary)' },
-        { label: 'Promedio diario', value: `${avgDaily.toFixed(1)}h`, color: 'var(--status-active)' },
-        { label: 'Días trabajados', value: `${daysWorked}`, color: 'var(--status-completed)' },
-        { label: 'Días con pausa', value: `${daysWithBreaks}`, color: 'var(--status-break)' },
-    ];
+  const summaryCards = [
+    { label: 'Total horas', value: `${totalHours.toFixed(1)}h`, color: 'var(--accent-primary)' },
+    { label: 'Promedio diario', value: `${avgDaily.toFixed(1)}h`, color: 'var(--status-active)' },
+    { label: 'Días trabajados', value: `${daysWorked}`, color: 'var(--status-completed)' },
+    { label: 'Días con pausa', value: `${daysWithBreaks}`, color: 'var(--status-break)' },
+  ];
 
-    return (
-        <AppShell>
-            <div className="reports-page animate-fade-in">
-                <div className="reports-page__header">
-                    <h1 className="reports-page__title">Reportes</h1>
-                    <div className="reports-page__period-tabs">
-                        {(['week', 'month'] as Period[]).map((p) => (
-                            <button
-                                key={p}
-                                className={`reports-page__tab ${period === p ? 'reports-page__tab--active' : ''}`}
-                                onClick={() => setPeriod(p)}
-                            >
-                                {p === 'week' ? 'Semana actual' : 'Mes actual'}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+  return (
+    <AppShell>
+      <div className="reports-page animate-fade-in">
+        <div className="reports-page__header">
+          <h1 className="reports-page__title">Reportes</h1>
+          <div className="reports-page__period-tabs">
+            {(['week', 'month'] as Period[]).map((p) => (
+              <button
+                key={p}
+                className={`reports-page__tab ${period === p ? 'reports-page__tab--active' : ''}`}
+                onClick={() => setPeriod(p)}
+              >
+                {p === 'week' ? 'Semana actual' : 'Mes actual'}
+              </button>
+            ))}
+          </div>
+        </div>
 
-                {/* Summary cards */}
-                <div className="reports-page__cards">
-                    {summaryCards.map((card) => (
-                        <div key={card.label} className="report-card glass-elevated">
-                            <span className="report-card__label">{card.label}</span>
-                            <span className="report-card__value" style={{ color: card.color }}>
-                                {card.value}
-                            </span>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Bar chart */}
-                <div className="reports-page__chart glass-elevated">
-                    <h2 className="reports-page__chart-title">Horas por día</h2>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                            <CartesianGrid
-                                strokeDasharray="3 3"
-                                stroke="rgba(148,163,184,0.08)"
-                                vertical={false}
-                            />
-                            <XAxis
-                                dataKey="dayLabel"
-                                tick={{ fill: '#64748B', fontSize: 11 }}
-                                axisLine={false}
-                                tickLine={false}
-                            />
-                            <YAxis
-                                tick={{ fill: '#64748B', fontSize: 11 }}
-                                axisLine={false}
-                                tickLine={false}
-                                tickFormatter={(v) => `${v}h`}
-                            />
-                            <Tooltip
-                                contentStyle={{
-                                    background: '#1A1A2E',
-                                    border: '1px solid rgba(148,163,184,0.15)',
-                                    borderRadius: '8px',
-                                    color: '#F1F5F9',
-                                    fontSize: '0.8rem',
-                                }}
-                                formatter={(value: number) => [`${value}h`, 'Horas']}
-                            />
-                            <Bar
-                                dataKey="hoursWorked"
-                                fill="#7C3AED"
-                                radius={[4, 4, 0, 0]}
-                                maxBarSize={48}
-                            />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-
-                {/* Detailed sessions table */}
-                <div className="reports-page__table glass-elevated">
-                    <h2 className="reports-page__chart-title">Detalle del período</h2>
-                    <table className="reports-table">
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Horas netas</th>
-                                <th>Pausas</th>
-                                <th>Notas</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {userSessions.map((s) => (
-                                <tr key={s.id}>
-                                    <td>
-                                        {new Date(s.check_in).toLocaleDateString('es-ES', {
-                                            weekday: 'short', day: 'numeric', month: 'short',
-                                        })}
-                                    </td>
-                                    <td className="reports-table__hours">
-                                        {s.net_minutes ? `${(s.net_minutes / 60).toFixed(1)}h` : '—'}
-                                    </td>
-                                    <td>{s.pause_minutes} min</td>
-                                    <td className="reports-table__notes">{s.notes || '—'}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+        {/* Summary cards */}
+        <div className="reports-page__cards">
+          {summaryCards.map((card) => (
+            <div key={card.label} className="report-card glass-elevated">
+              <span className="report-card__label">{card.label}</span>
+              <span className="report-card__value" style={{ color: card.color }}>
+                {card.value}
+              </span>
             </div>
+          ))}
+        </div>
 
-            <style jsx>{`
+        {/* Bar chart */}
+        <div className="reports-page__chart glass-elevated">
+          <h2 className="reports-page__chart-title">Horas por día</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="rgba(148,163,184,0.08)"
+                vertical={false}
+              />
+              <XAxis
+                dataKey="dayLabel"
+                tick={{ fill: '#64748B', fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fill: '#64748B', fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(v) => `${v}h`}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: '#1A1A2E',
+                  border: '1px solid rgba(148,163,184,0.15)',
+                  borderRadius: '8px',
+                  color: '#F1F5F9',
+                  fontSize: '0.8rem',
+                }}
+                formatter={(value: number) => [`${value}h`, 'Horas']}
+              />
+              <Bar
+                dataKey="hoursWorked"
+                fill="#7C3AED"
+                radius={[4, 4, 0, 0]}
+                maxBarSize={48}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Detailed sessions table */}
+        <div className="reports-page__table glass-elevated">
+          <h2 className="reports-page__chart-title">Detalle del período</h2>
+          <table className="reports-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Horas netas</th>
+                <th>Pausas</th>
+                <th>Notas</th>
+              </tr>
+            </thead>
+            <tbody>
+              {userSessions.map((s) => (
+                <tr key={s.id}>
+                  <td>
+                    {new Date(s.check_in).toLocaleDateString('es-ES', {
+                      weekday: 'short', day: 'numeric', month: 'short',
+                    })}
+                  </td>
+                  <td className="reports-table__hours">
+                    {s.net_minutes ? `${(s.net_minutes / 60).toFixed(1)}h` : '—'}
+                  </td>
+                  <td>{s.pause_minutes} min</td>
+                  <td className="reports-table__notes">{s.notes || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <style jsx>{`
         .reports-page {
           display: flex;
           flex-direction: column;
@@ -274,6 +280,6 @@ export default function ReportsPage() {
           font-style: italic;
         }
       `}</style>
-        </AppShell>
-    );
+    </AppShell>
+  );
 }

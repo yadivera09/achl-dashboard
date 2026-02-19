@@ -1,5 +1,3 @@
-@import "tailwindcss";
-
 /* ─── Design Tokens (ACHL Dark Theme) ─────────────────────────── */
 /* Inspired by UX mockup: deep violet/black backgrounds, purple accent */
 
@@ -16,7 +14,7 @@
   --accent-primary-hover: #6D28D9;
   --accent-primary-glow: rgba(124, 58, 237, 0.25);
   --accent-secondary: #A78BFA;
-  
+
   /* Status colors */
   --status-active: #27AE60;
   --status-active-glow: rgba(39, 174, 96, 0.2);
@@ -83,7 +81,7 @@ html {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
@@ -98,13 +96,16 @@ body {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--border-strong);
   border-radius: var(--radius-full);
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
@@ -149,17 +150,21 @@ body {
   border-radius: var(--radius-full);
   display: inline-block;
 }
+
 .status-dot--active {
   background-color: var(--status-active);
   box-shadow: 0 0 8px var(--status-active);
 }
+
 .status-dot--break {
   background-color: var(--status-break);
   box-shadow: 0 0 8px var(--status-break);
 }
+
 .status-dot--idle {
   background-color: var(--status-idle);
 }
+
 .status-dot--completed {
   background-color: var(--status-completed);
 }
@@ -167,19 +172,41 @@ body {
 /* ─── Animations ──────────────────────────────────────────────── */
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
 }
 
 @keyframes timer-tick {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.02);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .animate-fade-in {
@@ -190,6 +217,16 @@ body {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-/* ─── Inter Font (Google Fonts) ───────────────────────────────── */
+/* ─── Accessibility Utilities ─────────────────────────────────── */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

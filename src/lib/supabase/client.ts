@@ -1,36 +1,26 @@
 // ─── Supabase Client Wrapper ────────────────────────────────────
-// Wraps @supabase/supabase-js behind a factory function.
-// Consumers import from this file only — never directly from the SDK.
-// This ensures dependency agnosticism (SRS §7.1, user rule I).
+// Singleton browser client. All consumers import from here.
+// Dependency agnosticism: only this file imports from @supabase/supabase-js.
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
 let clientInstance: SupabaseClient | null = null;
 
-/**
- * Returns a singleton Supabase browser client.
- * Falls back gracefully if env vars are not configured yet.
- */
-export function getSupabaseClient(): SupabaseClient | null {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!url || !anonKey || url.includes('your-project')) {
-        // Supabase not configured — app will run with mock data
-        return null;
-    }
-
+export function getSupabaseClient(): SupabaseClient {
     if (!clientInstance) {
-        clientInstance = createClient(url, anonKey);
+        clientInstance = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true,
+            },
+        });
     }
-
     return clientInstance;
 }
 
-/**
- * Returns true when Supabase is properly configured.
- */
-export function isSupabaseConfigured(): boolean {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
-    return !url.includes('your-project') && url.startsWith('https://');
-}
+// Convenience alias
+export const supabase = getSupabaseClient();

@@ -9,6 +9,7 @@ import { Profile, WorkSession, Break, DailySummary, EmployeeStatus } from './typ
 export const MOCK_CURRENT_USER: Profile = {
     id: 'u-001',
     full_name: 'Carlos Mendoza',
+    email: 'carlos.mendoza@achl.co',
     avatar_url: null,
     role: 'admin',
     timezone: 'America/Bogota',
@@ -24,6 +25,7 @@ export const MOCK_EMPLOYEES: Profile[] = [
     {
         id: 'u-002',
         full_name: 'Sofía Herrera',
+        email: 'sofia.herrera@achl.co',
         avatar_url: null,
         role: 'employee',
         timezone: 'America/Bogota',
@@ -34,6 +36,7 @@ export const MOCK_EMPLOYEES: Profile[] = [
     {
         id: 'u-003',
         full_name: 'Andrés Vargas',
+        email: 'andres.vargas@achl.co',
         avatar_url: null,
         role: 'employee',
         timezone: 'America/Bogota',
@@ -44,6 +47,7 @@ export const MOCK_EMPLOYEES: Profile[] = [
     {
         id: 'u-004',
         full_name: 'Laura Jiménez',
+        email: 'laura.jimenez@achl.co',
         avatar_url: null,
         role: 'supervisor',
         timezone: 'America/Bogota',
@@ -54,6 +58,7 @@ export const MOCK_EMPLOYEES: Profile[] = [
     {
         id: 'u-005',
         full_name: 'Miguel Torres',
+        email: 'miguel.torres@achl.co',
         avatar_url: null,
         role: 'employee',
         timezone: 'America/Bogota',
@@ -64,6 +69,7 @@ export const MOCK_EMPLOYEES: Profile[] = [
     {
         id: 'u-006',
         full_name: 'Isabella Restrepo',
+        email: 'isabella.restrepo@achl.co',
         avatar_url: null,
         role: 'employee',
         timezone: 'America/Bogota',
@@ -72,6 +78,7 @@ export const MOCK_EMPLOYEES: Profile[] = [
         updated_at: '2026-01-15T08:00:00Z',
     },
 ];
+
 
 // ─── Work Sessions (historical) ─────────────────────────────────
 

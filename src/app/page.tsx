@@ -13,24 +13,25 @@ import BreakPanel from '@/components/dashboard/BreakPanel';
 import RecentSessions from '@/components/dashboard/RecentSessions';
 
 export default function DashboardPage() {
-    return (
-        <AppShell>
-            <div className="dashboard">
-                {/* Main content area (left) */}
-                <div className="dashboard__main">
-                    <StatisticsChart />
-                    <ActiveSessions />
-                </div>
+  return (
+    <AppShell>
+      <div className="dashboard">
+        <h1 className="sr-only">Dashboard — Control Horario Laboral</h1>
+        {/* Main content area (left) */}
+        <div className="dashboard__main">
+          <StatisticsChart />
+          <ActiveSessions />
+        </div>
 
-                {/* Sidebar panels (right) */}
-                <div className="dashboard__sidebar">
-                    <WorkdayCard />
-                    <BreakPanel />
-                    <RecentSessions />
-                </div>
-            </div>
+        {/* Sidebar panels (right) */}
+        <div className="dashboard__sidebar">
+          <WorkdayCard />
+          <BreakPanel />
+          <RecentSessions />
+        </div>
+      </div>
 
-            <style jsx>{`
+      <style jsx>{`
         .dashboard {
           display: grid;
           grid-template-columns: 1fr 380px;
@@ -68,6 +69,6 @@ export default function DashboardPage() {
           }
         }
       `}</style>
-        </AppShell>
-    );
+    </AppShell>
+  );
 }

@@ -2,26 +2,39 @@
 
 // ─── App Shell Component ────────────────────────────────────────
 // Combines Sidebar + Header + main content area.
-// Handles the overall page layout structure.
+// Loads the user's session on mount so all dashboard panels have data.
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import { useAuthStore } from '@/stores/authStore';
+import { useSessionStore } from '@/stores/sessionStore';
 
 interface AppShellProps {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }
 
 export default function AppShell({ children }: AppShellProps) {
-    return (
-        <div className="app-shell">
-            <Sidebar />
-            <Header />
-            <main className="app-main">
-                {children}
-            </main>
+  const user = useAuthStore((state) => state.user);
+  const { loadTodaySession, loadRecentSessions } = useSessionStore();
 
-            <style jsx>{`
+  // Load today's session whenever the user changes (login)
+  useEffect(() => {
+    if (user?.id) {
+      loadTodaySession(user.id);
+      loadRecentSessions(user.id);
+    }
+  }, [user?.id, loadTodaySession, loadRecentSessions]);
+
+  return (
+    <div className="app-shell">
+      <Sidebar />
+      <Header />
+      <main className="app-main" id="main-content">
+        {children}
+      </main>
+
+      <style jsx>{`
         .app-shell {
           min-height: 100vh;
         }
@@ -41,6 +54,6 @@ export default function AppShell({ children }: AppShellProps) {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

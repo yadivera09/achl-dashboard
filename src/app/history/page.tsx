@@ -3,141 +3,158 @@
 // ─── History Page ───────────────────────────────────────────────
 // Paginated table of all work sessions with date filters and CSV export.
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import AppShell from '@/components/layout/AppShell';
-import { MOCK_SESSIONS } from '@/lib/mock-data';
-import { formatDate, formatTime, formatDuration } from '@/lib/utils';
+import { supabase } from '@/lib/supabase/client';
+import { useAuthStore } from '@/stores/authStore';
+import { formatDate, formatTime } from '@/lib/utils';
+import type { WorkSession } from '@/lib/types';
 
 export default function HistoryPage() {
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+  const user = useAuthStore((state) => state.user);
+  const [allSessions, setAllSessions] = useState<WorkSession[]>([]);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
-    const userSessions = useMemo(() => {
-        let filtered = MOCK_SESSIONS
-            .filter((s) => s.user_id === 'u-001')
-            .sort((a, b) => new Date(b.check_in).getTime() - new Date(a.check_in).getTime());
+  // Load all sessions from Supabase
+  useEffect(() => {
+    if (!user?.id) return;
+    setIsLoadingData(true);
+    supabase
+      .from('work_sessions')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('check_in', { ascending: false })
+      .then(({ data }) => {
+        setAllSessions((data ?? []) as WorkSession[]);
+        setIsLoadingData(false);
+      });
+  }, [user?.id]);
 
-        if (startDate) {
-            filtered = filtered.filter((s) => s.check_in >= startDate);
-        }
-        if (endDate) {
-            filtered = filtered.filter((s) => s.check_in <= endDate + 'T23:59:59Z');
-        }
-        return filtered;
-    }, [startDate, endDate]);
+  const userSessions = useMemo(() => {
+    let filtered = allSessions;
+    if (startDate) {
+      filtered = filtered.filter((s) => s.check_in >= startDate);
+    }
+    if (endDate) {
+      filtered = filtered.filter((s) => s.check_in <= endDate + 'T23:59:59Z');
+    }
+    return filtered;
+  }, [allSessions, startDate, endDate]);
 
-    const exportCSV = () => {
-        const headers = 'Fecha,Entrada,Salida,Pausas (min),Horas Netas,Estado\n';
-        const rows = userSessions.map((s) => {
-            const date = formatDate(s.check_in);
-            const checkIn = formatTime(s.check_in);
-            const checkOut = s.check_out ? formatTime(s.check_out) : '';
-            const pauses = s.pause_minutes;
-            const netHours = s.net_minutes ? (s.net_minutes / 60).toFixed(1) : '';
-            const status = s.status;
-            return `${date},${checkIn},${checkOut},${pauses},${netHours},${status}`;
-        }).join('\n');
+  const exportCSV = () => {
+    const headers = 'Fecha,Entrada,Salida,Pausas (min),Horas Netas,Estado\n';
+    const rows = userSessions.map((s) => {
+      const date = formatDate(s.check_in);
+      const checkIn = formatTime(s.check_in);
+      const checkOut = s.check_out ? formatTime(s.check_out) : '';
+      const pauses = s.pause_minutes;
+      const netHours = s.net_minutes ? (s.net_minutes / 60).toFixed(1) : '';
+      const status = s.status;
+      return `${date},${checkIn},${checkOut},${pauses},${netHours},${status}`;
+    }).join('\n');
 
-        const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `historial_jornadas_${new Date().toISOString().split('T')[0]}.csv`;
-        link.click();
-        URL.revokeObjectURL(url);
-    };
+    const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `historial_jornadas_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
-    const totalHours = userSessions.reduce((acc, s) => acc + (s.net_minutes ?? 0), 0) / 60;
+  const totalHours = userSessions.reduce((acc, s) => acc + (s.net_minutes ?? 0), 0) / 60;
 
-    return (
-        <AppShell>
-            <div className="history-page animate-fade-in">
-                <div className="history-page__header">
-                    <h1 className="history-page__title">Historial de Jornadas</h1>
-                    <button className="history-page__export" onClick={exportCSV} id="btn-export-csv">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                            <polyline points="7 10 12 15 17 10" />
-                            <line x1="12" y1="15" x2="12" y2="3" />
-                        </svg>
-                        Exportar CSV
-                    </button>
-                </div>
+  return (
+    <AppShell>
+      <div className="history-page animate-fade-in">
+        <div className="history-page__header">
+          <h1 className="history-page__title">Historial de Jornadas</h1>
+          <button className="history-page__export" onClick={exportCSV} id="btn-export-csv">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Exportar CSV
+          </button>
+        </div>
 
-                {/* Filters */}
-                <div className="history-page__filters glass-surface">
-                    <div className="history-page__filter">
-                        <label htmlFor="filter-start">Desde</label>
-                        <input
-                            id="filter-start"
-                            type="date"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                            className="history-page__date-input"
-                        />
-                    </div>
-                    <div className="history-page__filter">
-                        <label htmlFor="filter-end">Hasta</label>
-                        <input
-                            id="filter-end"
-                            type="date"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            className="history-page__date-input"
-                        />
-                    </div>
-                    <div className="history-page__stats">
-                        <span className="history-page__stat-label">Total: </span>
-                        <span className="history-page__stat-value">{totalHours.toFixed(1)}h</span>
-                        <span className="history-page__stat-label"> en </span>
-                        <span className="history-page__stat-value">{userSessions.length} jornadas</span>
-                    </div>
-                </div>
+        {/* Filters */}
+        <div className="history-page__filters glass-surface">
+          <div className="history-page__filter">
+            <label htmlFor="filter-start">Desde</label>
+            <input
+              id="filter-start"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="history-page__date-input"
+            />
+          </div>
+          <div className="history-page__filter">
+            <label htmlFor="filter-end">Hasta</label>
+            <input
+              id="filter-end"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="history-page__date-input"
+            />
+          </div>
+          <div className="history-page__stats">
+            <span className="history-page__stat-label">Total: </span>
+            <span className="history-page__stat-value">{totalHours.toFixed(1)}h</span>
+            <span className="history-page__stat-label"> en </span>
+            <span className="history-page__stat-value">{userSessions.length} jornadas</span>
+          </div>
+        </div>
 
-                {/* Table */}
-                <div className="history-table-container glass-elevated">
-                    <table className="history-table">
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Entrada</th>
-                                <th>Salida</th>
-                                <th>Pausas</th>
-                                <th>Horas Netas</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {userSessions.length === 0 ? (
-                                <tr>
-                                    <td colSpan={6} className="history-table__empty">
-                                        No hay jornadas en el período seleccionado
-                                    </td>
-                                </tr>
-                            ) : (
-                                userSessions.map((session) => (
-                                    <tr key={session.id}>
-                                        <td className="history-table__date">{formatDate(session.check_in)}</td>
-                                        <td>{formatTime(session.check_in)}</td>
-                                        <td>{session.check_out ? formatTime(session.check_out) : '—'}</td>
-                                        <td>{session.pause_minutes} min</td>
-                                        <td className="history-table__hours">
-                                            {session.net_minutes ? `${(session.net_minutes / 60).toFixed(1)}h` : '—'}
-                                        </td>
-                                        <td>
-                                            <span className={`history-table__status history-table__status--${session.status}`}>
-                                                {session.status === 'active' ? 'Activa' : session.status === 'completed' ? 'Completada' : 'Editada'}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        {/* Table */}
+        <div className="history-table-container glass-elevated">
+          <table className="history-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Entrada</th>
+                <th>Salida</th>
+                <th>Pausas</th>
+                <th>Horas Netas</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {userSessions.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="history-table__empty">
+                    No hay jornadas en el período seleccionado
+                  </td>
+                </tr>
+              ) : (
+                userSessions.map((session) => (
+                  <tr key={session.id}>
+                    <td className="history-table__date">{formatDate(session.check_in)}</td>
+                    <td>{formatTime(session.check_in)}</td>
+                    <td>{session.check_out ? formatTime(session.check_out) : '—'}</td>
+                    <td>{session.pause_minutes} min</td>
+                    <td className="history-table__hours">
+                      {session.net_minutes ? `${(session.net_minutes / 60).toFixed(1)}h` : '—'}
+                    </td>
+                    <td>
+                      <span className={`history-table__status history-table__status--${session.status}`}>
+                        {session.status === 'active' ? 'Activa' : session.status === 'completed' ? 'Completada' : 'Editada'}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-            <style jsx>{`
+      <style jsx>{`
         .history-page {
           display: flex;
           flex-direction: column;
@@ -312,6 +329,6 @@ export default function HistoryPage() {
           }
         }
       `}</style>
-        </AppShell>
-    );
+    </AppShell>
+  );
 }
